@@ -50,7 +50,7 @@ export class CodeMirrorView implements NodeView {
     // 当前如果未获取到焦点，则不渲染 codeMirror 实例
     console.log(
       "isActive(view.state, node.type.name)",
-      isActive(view.state, node.type.name)
+      isActive(view.state, node.type.name), this.cm
     );
     if (isActive(view.state, node.type.name)) {
       this.createCodeMirror();
@@ -184,21 +184,26 @@ export class CodeMirrorView implements NodeView {
     if (this.updating) {
       return true;
     }
-    if (isActive(this.view.state, this.node.type.name)) {
-      if (!this.cm) {
-        this.createCodeMirror();
+    if (!isActive(this.view.state, this.node.type.name)) {
+      const toDom = this.node.type.spec.toDOM?.(this.node);
+      if (toDom) {
+        if ("string" !== typeof toDom && "dom" in toDom) {
+          this.cm?.destroy();
+          this.cm = undefined;
+          this.dom.appendChild(toDom.dom);
+          return true;
+        }
       }
-    } else {
-      this.cm?.destroy();
-      this.cm = undefined;
-      console.log(node);
-      this.dom.innerHTML = node.textContent;
-      return true;
+    }
+
+    if (!this.cm) {
+      this.createCodeMirror();
     }
 
     if (!this.cm) {
       return true;
     }
+
     const newText = node.textContent;
     const curText = this.cm.state.doc.toString();
     if (newText != curText) {
@@ -229,6 +234,7 @@ export class CodeMirrorView implements NodeView {
       });
       this.updating = false;
     }
+
     return true;
   }
 
