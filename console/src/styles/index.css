@@ -1,0 +1,4 @@
+.ProseMirror .hybrid-edit-block {
+  border: 1px solid #ccc;
+  min-height: 50px;
+}
