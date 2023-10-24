@@ -46,14 +46,16 @@ export class CodeMirrorView implements NodeView {
     this.cm = undefined;
     this.dom = document.createElement("div");
     (this.dom as Element).classList.add("hybrid-edit-block");
-
-    // 当前如果未获取到焦点，则不渲染 codeMirror 实例
-    console.log(
-      "isActive(view.state, node.type.name)",
-      isActive(view.state, node.type.name), this.cm
-    );
-    if (isActive(view.state, node.type.name)) {
-      this.createCodeMirror();
+    (this.dom as Element).addEventListener("dblclick", () => {
+      if (!this.cm) {
+        this.selectNode();
+      }
+    });
+    const toDom = this.node.type.spec.toDOM?.(this.node);
+    if (toDom) {
+      if ("string" !== typeof toDom && "dom" in toDom) {
+        this.appendChild(toDom.dom, true);
+      }
     }
   }
 
@@ -72,15 +74,41 @@ export class CodeMirrorView implements NodeView {
     });
 
     // 将 codeMirror 实例的 dom 节点作为 dom 子节点
+    this.appendChild(this.cm.dom, false);
+
+    // 防止外部编辑器与内部编辑器重复更新
+    this.updating = false;
+  }
+
+  removeCodeMirror() {
+    if (isActive(this.editor.view.state, this.node.type.name)) {
+      return;
+    }
+    const toDom = this.node.type.spec.toDOM?.(this.node);
+    if (toDom) {
+      if ("string" !== typeof toDom && "dom" in toDom) {
+        this.cm?.destroy();
+        this.cm = undefined;
+        this.appendChild(toDom.dom, true);
+        return true;
+      }
+    }
+  }
+
+  appendChild(node: Node, isPreview = false) {
     if (this.dom.hasChildNodes()) {
       this.dom.childNodes.forEach((node) => {
         this.dom.removeChild(node);
       });
     }
-    this.dom.appendChild(this.cm.dom);
-
-    // 防止外部编辑器与内部编辑器重复更新
-    this.updating = false;
+    // 移除 script 和 style 标签
+    if (node instanceof HTMLElement) {
+      Array.from(node.querySelectorAll("script, style")).forEach((node) => {
+        node.remove();
+      });
+    }
+    this.dom.appendChild(node);
+    (this.dom as Element).classList.toggle("preview", isPreview);
   }
 
   codeMirrorKeymap(): KeyBinding[] {
@@ -184,20 +212,13 @@ export class CodeMirrorView implements NodeView {
     if (this.updating) {
       return true;
     }
-    if (!isActive(this.view.state, this.node.type.name)) {
-      const toDom = this.node.type.spec.toDOM?.(this.node);
-      if (toDom) {
-        if ("string" !== typeof toDom && "dom" in toDom) {
-          this.cm?.destroy();
-          this.cm = undefined;
-          this.dom.appendChild(toDom.dom);
-          return true;
-        }
-      }
-    }
 
-    if (!this.cm) {
-      this.createCodeMirror();
+    if (!isActive(this.view.state, this.node.type.name)) {
+      if (this.node.textContent.length == 0) {
+        this.editor.chain().deleteNode(this.node.type.name).run();
+      }
+      this.removeCodeMirror();
+      return true;
     }
 
     if (!this.cm) {
@@ -239,6 +260,10 @@ export class CodeMirrorView implements NodeView {
   }
 
   selectNode() {
+    // 创建 CodeMirror 实例
+    if (!this.cm) {
+      this.createCodeMirror();
+    }
     this.cm?.focus();
   }
 

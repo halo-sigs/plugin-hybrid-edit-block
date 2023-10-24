@@ -1,13 +1,13 @@
-import "./styles/index.css";
+import "./styles/index.scss";
 import { definePlugin } from "@halo-dev/console-shared";
-import { TestEditedExtension, MarkdownEditedExtension } from "./editor";
+import { HTMLEditedExtension, MarkdownEditedExtension } from "./editor";
 
 export default definePlugin({
   components: {},
   routes: [],
   extensionPoints: {
     "default:editor:extension:create": () => {
-      return [TestEditedExtension, MarkdownEditedExtension];
+      return [HTMLEditedExtension, MarkdownEditedExtension];
     },
   },
 });

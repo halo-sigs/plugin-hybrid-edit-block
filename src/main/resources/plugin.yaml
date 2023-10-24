@@ -11,7 +11,7 @@ spec:
   logo: https://halo.run/logo
   homepage: https://github.com/halo-dev/plugin-hybrid-edit-block
   displayName: "混双编辑块"
-  description: "默认富文本编辑器的混双编辑快扩展"
+  description: "默认富文本编辑器的混双编辑块扩展"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/halo-sigs/plugin-hybrid-edit-block/blob/main/LICENSE"
