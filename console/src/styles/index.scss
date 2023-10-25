@@ -1,0 +1,47 @@
+.ProseMirror {
+  .hybrid-edit-block {
+    margin-top: 0.75em;
+    outline: 2px solid #4CCBA0;
+
+    &.preview {
+      outline: 1px solid #ccc;
+      padding: 0.4rem;
+
+      &.has-node-selected {
+        outline: 2px solid #4CCBA0;
+      }
+
+      pre {
+        margin-top: 0.75em !important;
+
+        code {
+          color: white;
+        }
+      }
+    }
+
+    &:hover {
+      outline-color: #55c6a0;
+    }
+
+    .cm-editor {
+      min-height: 10em;
+
+      &.cm-focused {
+        outline: none;
+      }
+
+      .cm-line {
+        color: #394047;
+        line-height: 1.5rem;
+      }
+
+      .cm-gutters {
+        background: none;
+        border: none;
+        color: #ced4d9;
+        line-height: 1.5rem;
+      }
+    }
+  }
+}

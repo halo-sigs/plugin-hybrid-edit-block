@@ -1,45 +1,92 @@
-# plugin-starter
+# 默认富文本编辑器的 Markdown / HTML 内容块扩展
 
-Halo 2.0 插件开发快速开始模板。
+本插件是 Halo 默认富文本编辑器的扩展插件，允许你在默认编辑器中插入 `HTML` 及 `Markdown` 块，用于撰写 HTML 或 Markdown 代码。
 
-## 开发环境
+## 预览
 
-插件开发的详细文档请查阅：<https://docs.halo.run/developer-guide/plugin/hello-world>
+### HTML 编辑块
 
-```bash
-git clone git@github.com:halo-sigs/plugin-starter.git
+![HTML Editor](./img/html-editor.png)
 
-# 或者当你 fork 之后
+### Markdown 编辑块
 
-git clone git@github.com:{your_github_id}/plugin-starter.git
+![Markdown edit block](./img/markdown-editor.png)
+
+## 用法
+
+1. 在 [Halo](https://www.halo.run/) 中安装此插件并启用
+2. 在编辑器中点击 `+` 按钮，或者使用 `/` 快捷键, 选择 `HTML` 或 `Markdown` 编辑块
+
+    ![Insert edit block](./img/insert-editor.png)
+
+3. 在 `HTML` 或 `Markdown` 编辑块中编写代码
+4. 点击 `保存` 按钮，即可在文章中看到效果
+
+## 开发
+
+1. fork 此仓库
+
+    ```bash
+    https://github.com/halo-sigs/plugin-hybrid-edit-block/fork
+    ```
+
+2. 克隆自己的分支到本地
+
+    ```#55c6a0
+    git clone https://github.com/{you-name}/plugin-hybrid-edit-block
+    ```
+
+3. 安装依赖
+
+    ```#55c6a0
+    cd path/to/plugin-hybrid-edit-block/console 
+
+    pnpm install
+
+    pnpm dev
+    ```
+
+4. 打包最终产物
+
+    ```#55c6a0
+    ./gradlew clean build
+    ```
+
+## 常见问题
+
+<details>
+<summary>1. 是否支持 `style` 及 `script` 标签？</summary>
+
+支持。但建议编写时将作用范围限制在较小范围内。
+
+</details>
+
+<details>
+<summary>2. Markdown 编辑块中的回显内容与编写时的语法不一致？</summary>
+
+由于 Markdown 编辑器最终产物是 HTML，因此回显的内容是基于 HTML 根据规则反解析的，因此可能与编写时的语法不一致。例如
+
+```
+* First item
+* Second item
+* Third item
+* Fourth item
 ```
 
-```bash
-cd path/to/plugin-starter
+回显之后将会变成
+
+```
+- First item
+- Second item
+- Third item
+- Fourth item
 ```
 
-```bash
-# macOS / Linux
-./gradlew pnpmInstall
+</details>
 
-# Windows
-./gradlew.bat pnpmInstall
-```
+<details>
+<summary>3. 停止使用此插件之后，之前编辑的内容会丢失吗？</summary>
 
-```bash
-# macOS / Linux
-./gradlew build
+之前编辑的内容不会丢失，但由于没有了插件支持，将无法正常显示。
 
-# Windows
-./gradlew.bat build
-```
-
-修改 Halo 配置文件：
-
-```yaml
-halo:
-  plugin:
-    runtime-mode: development
-    fixedPluginPath:
-      - "/path/to/plugin-starter"
-```
+</details>
