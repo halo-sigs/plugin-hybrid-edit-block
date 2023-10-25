@@ -26,30 +26,31 @@
 
 1. fork 此仓库
 
-```
-https://github.com/halo-sigs/plugin-hybrid-edit-block/fork
-```
+    ```bash
+    https://github.com/halo-sigs/plugin-hybrid-edit-block/fork
+    ```
 
 2. 克隆自己的分支到本地
 
-```
-git clone https://github.com/{you-name}/plugin-hybrid-edit-block
-```
+    ```#55c6a0
+    git clone https://github.com/{you-name}/plugin-hybrid-edit-block
+    ```
 
 3. 安装依赖
 
-```
-cd path/to/plugin-hybrid-edit-block/console 
+    ```#55c6a0
+    cd path/to/plugin-hybrid-edit-block/console 
 
-pnpm install
+    pnpm install
 
-pnpm dev
-```
+    pnpm dev
+    ```
 
 4. 打包最终产物
-```
-./gradlew clean build
-```
+
+    ```#55c6a0
+    ./gradlew clean build
+    ```
 
 ## 常见问题
 
