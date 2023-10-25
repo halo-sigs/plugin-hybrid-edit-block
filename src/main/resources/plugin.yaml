@@ -10,8 +10,8 @@ spec:
     website: https://github.com/halo-dev
   logo: https://halo.run/logo
   homepage: https://github.com/halo-dev/plugin-hybrid-edit-block
-  displayName: "混双编辑块"
-  description: "默认富文本编辑器的混双编辑块扩展"
+  displayName: "Markdown / HTML 内容块"
+  description: "为默认富文本编辑器提供编写 Markdown / HTML 的内容块扩展"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/halo-sigs/plugin-hybrid-edit-block/blob/main/LICENSE"

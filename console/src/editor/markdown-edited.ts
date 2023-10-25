@@ -47,8 +47,8 @@ const MarkdownEdited = Node.create({
         return {
           priority: 82,
           icon: markRaw(MdiLanguageMarkdown),
-          title: "Markdown 编辑",
-          keywords: ["markdown"],
+          title: "Markdown 编辑块",
+          keywords: ["markdown", "编辑块"],
           command: ({ editor, range }: { editor: Editor; range: Range }) => {
             editor.chain().focus().deleteRange(range).addMarkdownEdited().run();
             editor.chain().setSelectMarkdownNode().run();
@@ -63,7 +63,7 @@ const MarkdownEdited = Node.create({
             props: {
               editor,
               icon: markRaw(MdiLanguageMarkdown),
-              title: "HTML 编辑",
+              title: "Markdown 编辑块",
               action: () => {
                 editor.chain().focus().addMarkdownEdited().run();
                 editor.chain().setSelectMarkdownNode().run();
