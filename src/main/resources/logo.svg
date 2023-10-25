@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class=""><rect id="r4" width="512" height="512" x="0" y="0" rx="0" fill="url(#r5)" stroke="#FFFFFF" stroke-width="0" stroke-opacity="100%" paint-order="stroke"></rect><clipPath id="clip"><use xlink:href="#r4"></use></clipPath><defs><linearGradient id="r5" gradientUnits="userSpaceOnUse" gradientTransform="rotate(180)" style="transform-origin: center center;"><stop stop-color="#5C5C5C"></stop><stop offset="1" stop-color="#0F1015"></stop></linearGradient><radialGradient id="r6" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256) rotate(90) scale(512)"><stop stop-color="white"></stop><stop offset="1" stop-color="white" stop-opacity="0"></stop></radialGradient></defs>
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="450" height="450" viewBox="0 0 500 500" xml:space="preserve" x="31" y="31" alignment-baseline="middle" style="color: rgb(255, 255, 255);">
+<desc>Created with Fabric.js 3.6.6</desc>
+<defs>
+</defs>
+<g transform="matrix(7.72 0 0 7.72 393.64 250.1)">
+<path transform=" translate(-12, -12)" d="M 13 16 V 8 l 2 5 l 2 -5 v 8 M 1 16 V 8 m 4 0 v 8 m -4 -4 h 4 m 2 -4 h 4 M 9 8 v 8 m 11 -8 v 8 h 3" stroke-linecap="round" style="stroke: rgb(255, 255, 255); stroke-width: 2; stroke-dasharray: none; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; stroke-miterlimit: 4; fill: none; fill-rule: nonzero; opacity: 1;"></path>
+</g>
+<g transform="matrix(5.88 0 0 5.88 92.91 250.21)">
+<g>
+		<g transform="matrix(1.33 0 0 1.33 -0.03 -0.03)">
+<path transform=" translate(-12, -12)" d="M 3 7 a 2 2 0 0 1 2 -2 h 14 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 H 5 a 2 2 0 0 1 -2 -2 z" stroke-linecap="round" style="stroke: rgb(255, 255, 255); stroke-width: 2; stroke-dasharray: none; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; stroke-miterlimit: 4; fill: none; fill-rule: nonzero; opacity: 1;"></path>
+</g>
+		<g transform="matrix(1.33 0 0 1.33 0.64 -0.01)">
+<path transform=" translate(-12.5, -12)" d="M 7 15 V 9 l 2 2 l 2 -2 v 6 m 3 -2 l 2 2 l 2 -2 m -2 2 V 9" stroke-linecap="round" style="stroke: rgb(255, 255, 255); stroke-width: 2; stroke-dasharray: none; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; stroke-miterlimit: 4; fill: none; fill-rule: nonzero; opacity: 1;"></path>
+</g>
+</g>
+</g>
+<g transform="matrix(1 0 0 1 251 252.51)">
+		<text xml:space="preserve" font-family="'Open Sans', sans-serif" font-size="54" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0, 0, 0); fill-rule: nonzero; opacity: 1; white-space: pre;"><tspan x="-40" y="16.96" style="stroke-width: 1; font-family: &quot;Open Sans&quot;, sans-serif; font-style: normal; font-weight: normal; fill: rgb(255, 255, 255);">&amp;</tspan></text>
+</g>
+</svg></svg>
