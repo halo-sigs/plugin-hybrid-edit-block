@@ -6,7 +6,7 @@ spec:
   enabled: true
   requires: ">=2.10.0"
   author:
-    name: Halo OSS Team
+    name: Halo
     website: https://github.com/halo-dev
   logo: logo.svg
   homepage: https://github.com/halo-dev/plugin-hybrid-edit-block
