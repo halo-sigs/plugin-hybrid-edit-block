@@ -1,4 +1,4 @@
-# 默认富文本编辑器的混双编辑块扩展
+# 默认富文本编辑器的 Markdown / HTML 内容块扩展
 
 本插件是 Halo 默认富文本编辑器的扩展插件，允许你在默认编辑器中插入 `HTML` 及 `Markdown` 块，用于撰写 HTML 或 Markdown 代码。
 
