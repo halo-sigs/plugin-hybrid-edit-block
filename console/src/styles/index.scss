@@ -18,6 +18,11 @@
           color: white;
         }
       }
+
+      & .html-edited,
+      & .markdown-edited {
+        pointer-events: none;
+      }
     }
 
     &:hover {

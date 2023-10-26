@@ -215,7 +215,7 @@ export class CodeMirrorView implements NodeView {
 
     if (!isActive(this.view.state, this.node.type.name)) {
       if (this.node.textContent.length == 0) {
-        this.editor.chain().deleteNode(this.node.type.name).run();
+        this.editor.chain().deleteCurrentNode().run();
       }
       this.removeCodeMirror();
       return true;
@@ -264,6 +264,7 @@ export class CodeMirrorView implements NodeView {
     if (!this.cm) {
       this.createCodeMirror();
     }
+    this.editor.chain().scrollIntoView().run();
     this.cm?.focus();
   }
 
