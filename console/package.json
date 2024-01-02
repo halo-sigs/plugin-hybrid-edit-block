@@ -19,6 +19,7 @@
     "@lezer/highlight": "1.1.6",
     "marked": "^9.1.2",
     "turndown": "^7.1.2",
+    "turndown-plugin-gfm": "^1.0.2",
     "vue": "^3.3.4"
   },
   "devDependencies": {

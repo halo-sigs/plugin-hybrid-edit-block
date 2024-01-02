@@ -41,6 +41,9 @@ dependencies:
   turndown:
     specifier: ^7.1.2
     version: 7.1.2
+  turndown-plugin-gfm:
+    specifier: ^1.0.2
+    version: 1.0.2
   vue:
     specifier: ^3.3.4
     version: 3.3.4
@@ -4583,6 +4586,10 @@ packages:
       tslib: 1.14.1
       typescript: 4.7.4
     dev: true
+
+  /turndown-plugin-gfm@1.0.2:
+    resolution: {integrity: sha512-vwz9tfvF7XN/jE0dGoBei3FXWuvll78ohzCZQuOb+ZjWrs3a0XhQVomJEb2Qh4VHTPNRO4GPZh0V7VRbiWwkRg==}
+    dev: false
 
   /turndown@7.1.2:
     resolution: {integrity: sha512-ntI9R7fcUKjqBP6QU8rBK2Ehyt8LAzt3UBT9JR9tgo6GtuKvyUzpayWmeMKJw1DPdXzktvtIT8m2mVXz+bL/Qg==}
