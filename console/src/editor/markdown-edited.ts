@@ -19,6 +19,25 @@ const turndownService = new TurndownService({
   bulletListMarker: "-",
   codeBlockStyle: "fenced",
 });
+turndownService.keep([
+  "audio",
+  "br",
+  "button",
+  "canvas",
+  "cite",
+  "datalist",
+  "div",
+  "figure",
+  "iframe",
+  "p",
+  "script",
+  "source",
+  "span",
+  "style",
+  "summary",
+  "textarea",
+  "video",
+]);
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
