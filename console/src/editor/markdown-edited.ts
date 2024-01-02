@@ -18,6 +18,9 @@ const turndownService = new TurndownService({
   hr: "---",
   bulletListMarker: "-",
   codeBlockStyle: "fenced",
+  blankReplacement: function (content, node) {
+    return (node as HTMLElement).outerHTML;
+  },
 });
 
 declare module "@tiptap/core" {
@@ -177,7 +180,10 @@ const MarkdownEdited = Node.create({
             return Fragment.empty;
           }
           // html covert to markdown
-          const markdown = turndownService.turndown(htmlNode.innerHTML);
+          let markdown = turndownService.turndown(htmlNode.innerHTML);
+          if (!markdown) {
+            markdown = "<br>";
+          }
           const textNode = schema.text(markdown);
           return Fragment.from(textNode);
         },
