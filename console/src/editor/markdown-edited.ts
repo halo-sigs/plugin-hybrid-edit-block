@@ -7,6 +7,7 @@ import { Fragment } from "@tiptap/pm/model";
 import { markdown } from "@codemirror/lang-markdown";
 import { marked } from "marked";
 import TurndownService from "turndown";
+import { gfm } from "turndown-plugin-gfm";
 import { ToolboxItem } from "@halo-dev/richtext-editor";
 import type { EditorState } from "@tiptap/pm/state";
 import MdiPencilOutline from "~icons/mdi/pencil-outline";
@@ -36,6 +37,7 @@ turndownService.keep([
   "textarea",
   "video",
 ]);
+turndownService.use(gfm);
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
