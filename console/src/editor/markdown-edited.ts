@@ -19,7 +19,10 @@ const turndownService = new TurndownService({
   bulletListMarker: "-",
   codeBlockStyle: "fenced",
   blankReplacement: function (content, node) {
-    return (node as HTMLElement).outerHTML;
+    if (node instanceof HTMLElement) {
+      return node.outerHTML;
+    }
+    return content;
   },
 });
 
