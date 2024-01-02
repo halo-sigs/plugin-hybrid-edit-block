@@ -21,7 +21,6 @@ const turndownService = new TurndownService({
 });
 turndownService.keep([
   "audio",
-  "br",
   "button",
   "canvas",
   "cite",
@@ -29,7 +28,6 @@ turndownService.keep([
   "div",
   "figure",
   "iframe",
-  "p",
   "script",
   "source",
   "span",
