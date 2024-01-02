@@ -19,6 +19,12 @@ const turndownService = new TurndownService({
   hr: "---",
   bulletListMarker: "-",
   codeBlockStyle: "fenced",
+  blankReplacement: function (content, node) {
+    if (node instanceof HTMLElement) {
+      return node.outerHTML;
+    }
+    return content;
+  },
 });
 turndownService.keep([
   "audio",
@@ -196,7 +202,10 @@ const MarkdownEdited = Node.create({
             return Fragment.empty;
           }
           // html covert to markdown
-          const markdown = turndownService.turndown(htmlNode.innerHTML);
+          let markdown = turndownService.turndown(htmlNode.innerHTML);
+          if (!markdown) {
+            markdown = "<br>";
+          }
           const textNode = schema.text(markdown);
           return Fragment.from(textNode);
         },
