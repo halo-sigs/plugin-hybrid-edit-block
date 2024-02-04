@@ -4,7 +4,7 @@ metadata:
   name: hybrid-edit-block
 spec:
   enabled: true
-  requires: ">=2.10.0"
+  requires: ">=2.12.0"
   author:
     name: Halo
     website: https://github.com/halo-dev

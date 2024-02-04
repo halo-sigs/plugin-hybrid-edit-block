@@ -1,15 +1,21 @@
-import { findParentNode, isActive, mergeAttributes, Node } from "@tiptap/core";
-import type { Editor, Range } from "@tiptap/core";
+import {
+  findParentNode,
+  isActive,
+  mergeAttributes,
+  Node,
+  Fragment,
+  type Editor,
+  type Range,
+  type EditorState,
+} from "@halo-dev/richtext-editor";
 import { markRaw } from "vue";
 import MdiLanguageMarkdown from "~icons/mdi/language-markdown";
 import { CodeMirrorView } from "./code-mirror-view";
-import { Fragment } from "@tiptap/pm/model";
 import { markdown } from "@codemirror/lang-markdown";
 import { marked } from "marked";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { ToolboxItem } from "@halo-dev/richtext-editor";
-import type { EditorState } from "@tiptap/pm/state";
 import MdiPencilOutline from "~icons/mdi/pencil-outline";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "@/utils/delete-node";
@@ -45,7 +51,7 @@ turndownService.keep([
 ]);
 turndownService.use(gfm);
 
-declare module "@tiptap/core" {
+declare module "@halo-dev/richtext-editor" {
   interface Commands<ReturnType> {
     MarkdownEdited: {
       addMarkdownEdited: () => ReturnType;

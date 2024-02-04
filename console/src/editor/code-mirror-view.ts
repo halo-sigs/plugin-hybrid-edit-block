@@ -1,6 +1,10 @@
-import type { EditorView as PMEditorView, NodeView } from "@tiptap/pm/view";
-import type { Node as PMNode } from "@tiptap/pm/model";
-import { isActive, type Editor } from "@tiptap/core";
+import type { PMNode } from "@halo-dev/richtext-editor";
+import {
+  isActive,
+  type Editor,
+  type EditorView as PMEditorView,
+  type PMNodeView,
+} from "@halo-dev/richtext-editor";
 import {
   EditorView as CodeMirror,
   ViewUpdate,
@@ -10,16 +14,20 @@ import {
 } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { defaultKeymap } from "@codemirror/commands";
-import { Selection, TextSelection } from "@tiptap/pm/state";
-import { exitCode } from "@tiptap/pm/commands";
-import { undo, redo } from "@tiptap/pm/history";
+import {
+  Selection,
+  TextSelection,
+  exitCode,
+  undo,
+  redo,
+} from "@halo-dev/richtext-editor";
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
 } from "@codemirror/language";
 import { autocompletion } from "@codemirror/autocomplete";
 
-export class CodeMirrorView implements NodeView {
+export class CodeMirrorView implements PMNodeView {
   editor: Editor;
   node: PMNode;
   view: PMEditorView;

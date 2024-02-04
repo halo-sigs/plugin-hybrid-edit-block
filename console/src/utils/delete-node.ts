@@ -1,4 +1,4 @@
-import type { Editor } from "@tiptap/core";
+import type { Editor } from "@halo-dev/richtext-editor";
 
 export const deleteNode = (nodeType: string, editor: Editor) => {
   const { state } = editor;
