@@ -5,7 +5,7 @@ import MdiLanguageMarkdown from "~icons/mdi/language-markdown";
 import { CodeMirrorView } from "./code-mirror-view";
 import { Fragment } from "@tiptap/pm/model";
 import { markdown } from "@codemirror/lang-markdown";
-import { marked } from "marked";
+import marked from "@/utils/markdown";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { ToolboxItem } from "@halo-dev/richtext-editor";
