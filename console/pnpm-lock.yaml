@@ -38,6 +38,9 @@ dependencies:
   marked:
     specifier: ^9.1.2
     version: 9.1.2
+  marked-gfm-heading-id:
+    specifier: ^3.1.2
+    version: 3.1.2(marked@9.1.2)
   turndown:
     specifier: ^7.1.2
     version: 7.1.2
@@ -3088,6 +3091,10 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
+  /github-slugger@2.0.0:
+    resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
+    dev: false
+
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -3654,6 +3661,15 @@ packages:
       punycode.js: 2.3.1
       uc.micro: 2.0.0
     dev: true
+
+  /marked-gfm-heading-id@3.1.2(marked@9.1.2):
+    resolution: {integrity: sha512-SdIZvhNxDgndFkDa2WRcFP4ahYm6k6hoHdTCN+fD7HRiI/R3Eimcw/Yl7ikQ+0KUuDpi75NnYQiThZnZsNr9Dg==}
+    peerDependencies:
+      marked: '>=4 <12'
+    dependencies:
+      github-slugger: 2.0.0
+      marked: 9.1.2
+    dev: false
 
   /marked@9.1.2:
     resolution: {integrity: sha512-qoKMJqK0w6vkLk8+KnKZAH6neUZSNaQqVZ/h2yZ9S7CbLuFHyS2viB0jnqcWF9UKjwsAbMrQtnQhdmdvOVOw9w==}

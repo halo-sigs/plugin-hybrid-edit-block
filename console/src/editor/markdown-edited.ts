@@ -12,7 +12,7 @@ import { markRaw } from "vue";
 import MdiLanguageMarkdown from "~icons/mdi/language-markdown";
 import { CodeMirrorView } from "./code-mirror-view";
 import { markdown } from "@codemirror/lang-markdown";
-import { marked } from "marked";
+import marked from "@/utils/markdown";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { ToolboxItem } from "@halo-dev/richtext-editor";
