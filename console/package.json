@@ -21,7 +21,8 @@
     "marked-gfm-heading-id": "^3.1.2",
     "turndown": "^7.1.2",
     "turndown-plugin-gfm": "^1.0.2",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@halo-dev/richtext-editor": "^2.12.0",
