@@ -26,6 +26,19 @@ import {
   defaultHighlightStyle,
 } from "@codemirror/language";
 import { autocompletion } from "@codemirror/autocomplete";
+import { FilterXSS, escapeAttrValue } from "xss";
+
+const editorViewXSS = new FilterXSS({
+  onIgnoreTagAttr: function (tag, name, value, isWhiteAttr) {
+    if (isWhiteAttr) {
+      return `${name}="${value}"`;
+    }
+    if (name == "href" || name == "src" || name == "style") {
+      return `${name}="${escapeAttrValue(value)}"`;
+    }
+    return `${name}="${value}"`;
+  },
+});
 
 export class CodeMirrorView implements PMNodeView {
   editor: Editor;
@@ -109,11 +122,16 @@ export class CodeMirrorView implements PMNodeView {
         this.dom.removeChild(node);
       });
     }
-    // 移除 script 和 style 标签
     if (node instanceof HTMLElement) {
+      // 移除 script 和 style 标签
       Array.from(node.querySelectorAll("script, style")).forEach((node) => {
         node.remove();
       });
+      if (isPreview) {
+        // 防止编辑器执行 xss 相关代码
+        const filterHTML = editorViewXSS.process(node.innerHTML);
+        node.innerHTML = filterHTML;
+      }
     }
     this.dom.appendChild(node);
     (this.dom as Element).classList.toggle("preview", isPreview);
