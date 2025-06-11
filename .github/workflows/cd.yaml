@@ -15,3 +15,5 @@ jobs:
     with:
       app-id: app-NgHnY
       ui-path: "console"
+      node-version: 20
+      pnpm-version: 10
