@@ -1,12 +1,14 @@
 import "./styles/index.scss";
 import { definePlugin } from "@halo-dev/console-shared";
-import { HTMLEditedExtension, MarkdownEditedExtension } from "./editor";
 
 export default definePlugin({
   components: {},
   routes: [],
   extensionPoints: {
-    "default:editor:extension:create": () => {
+    "default:editor:extension:create": async () => {
+      const { HTMLEditedExtension, MarkdownEditedExtension } = await import(
+        "./editor/index"
+      );
       return [HTMLEditedExtension, MarkdownEditedExtension];
     },
   },
