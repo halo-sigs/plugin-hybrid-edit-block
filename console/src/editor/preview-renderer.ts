@@ -1,17 +1,4 @@
-import { FilterXSS, escapeAttrValue } from "xss";
 import marked from "../utils/markdown";
-
-const editorViewXSS = new FilterXSS({
-  onIgnoreTagAttr: function (tag, name, value, isWhiteAttr) {
-    if (isWhiteAttr) {
-      return `${name}="${value}"`;
-    }
-    if (name == "href" || name == "src" || name == "style") {
-      return `${name}="${escapeAttrValue(value)}"`;
-    }
-    return `${name}="${value}"`;
-  },
-});
 
 /**
  * 预览渲染器
@@ -19,11 +6,12 @@ const editorViewXSS = new FilterXSS({
  */
 export class PreviewRenderer {
   private blockType: string;
-  private container: HTMLElement;
+  private shadowRoot: ShadowRoot;
 
   constructor(blockType: string, container: HTMLElement) {
     this.blockType = blockType;
-    this.container = container;
+    // 创建 Shadow DOM 用于内容隔离
+    this.shadowRoot = container.attachShadow({ mode: "closed" });
   }
 
   /**
@@ -42,9 +30,7 @@ export class PreviewRenderer {
       previewNode = content.cloneNode(true) as HTMLElement;
     }
 
-    this.cleanupPreview(previewNode);
-
-    this.container.appendChild(previewNode);
+    this.shadowRoot.appendChild(previewNode);
   }
 
   private createPreviewFromText(text: string): HTMLElement {
@@ -62,23 +48,9 @@ export class PreviewRenderer {
     return container;
   }
 
-  /**
-   * 清理预览内容（移除危险标签和 XSS 过滤）
-   */
-  private cleanupPreview(node: HTMLElement): void {
-    // 移除 script 和 style 标签
-    Array.from(node.querySelectorAll("script, style")).forEach((element) => {
-      element.remove();
-    });
-
-    // 防止编辑器执行 xss 相关代码
-    const filterHTML = editorViewXSS.process(node.innerHTML);
-    node.innerHTML = filterHTML;
-  }
-
   private clearContainer(): void {
-    while (this.container.firstChild) {
-      this.container.removeChild(this.container.firstChild);
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
     }
   }
 
