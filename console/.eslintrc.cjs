@@ -12,4 +12,8 @@ module.exports = {
   env: {
     "vue/setup-compiler-macros": true,
   },
+  rules: {
+    "vue/no-v-html": "off",
+    "vue/multi-word-component-names": "off",
+  },
 };

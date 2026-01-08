@@ -1,4 +1,4 @@
-import "./styles/index.scss";
+import "uno.css";
 import { definePlugin } from "@halo-dev/console-shared";
 
 export default definePlugin({

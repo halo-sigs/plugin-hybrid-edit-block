@@ -4,19 +4,20 @@ import {
   mergeAttributes,
   Node,
   Fragment,
+  ToolboxItem,
+  VueNodeViewRenderer,
   type Editor,
   type Range,
   type EditorState,
+  type ExtensionOptions,
 } from "@halo-dev/richtext-editor";
 import { markRaw } from "vue";
 import MdiLanguageMarkdown from "~icons/mdi/language-markdown";
-import { CodeMirrorView } from "./code-mirror-view";
+import CodeMirrorView from "./CodeMirrorView.vue";
 import { markdown } from "@codemirror/lang-markdown";
 import marked from "../utils/markdown";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
-import { ToolboxItem } from "@halo-dev/richtext-editor";
-import MdiPencilOutline from "~icons/mdi/pencil-outline";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
 const temporaryDocument = document.implementation.createHTMLDocument();
@@ -60,7 +61,7 @@ declare module "@halo-dev/richtext-editor" {
   }
 }
 
-const MarkdownEdited = Node.create({
+const MarkdownEdited = Node.create<ExtensionOptions>({
   name: "markdown_edited",
 
   content: "text*",
@@ -69,11 +70,30 @@ const MarkdownEdited = Node.create({
 
   defining: true,
 
+  addAttributes() {
+    return {
+      collapsed: {
+        default: false,
+        parseHTML: (element) => !!element.getAttribute("collapsed"),
+        renderHTML: (attributes) => {
+          if (attributes.collapsed) {
+            return {
+              collapsed: attributes.collapsed,
+            };
+          }
+          return {};
+        },
+      },
+    };
+  },
+
   addOptions() {
     return {
       HTMLAttributes: {
         class: "markdown-edited",
       },
+      blockType: "markdown",
+      extensions: [markdown()],
       getCommandMenuItems() {
         return {
           priority: 82,
@@ -81,8 +101,13 @@ const MarkdownEdited = Node.create({
           title: "Markdown 编辑块",
           keywords: ["markdown", "编辑块"],
           command: ({ editor, range }: { editor: Editor; range: Range }) => {
-            editor.chain().focus().deleteRange(range).addMarkdownEdited().run();
-            editor.chain().setSelectMarkdownNode().run();
+            editor
+              .chain()
+              .focus()
+              .deleteRange(range)
+              .addMarkdownEdited()
+              .setSelectMarkdownNode()
+              .run();
           },
         };
       },
@@ -96,8 +121,12 @@ const MarkdownEdited = Node.create({
               icon: markRaw(MdiLanguageMarkdown),
               title: "Markdown 编辑块",
               action: () => {
-                editor.chain().focus().addMarkdownEdited().run();
-                editor.chain().setSelectMarkdownNode().run();
+                editor
+                  .chain()
+                  .focus()
+                  .addMarkdownEdited()
+                  .setSelectMarkdownNode()
+                  .run();
               },
             },
           },
@@ -111,25 +140,6 @@ const MarkdownEdited = Node.create({
           },
           items: [
             {
-              priority: 10,
-              props: {
-                visible: ({ editor }: { editor: Editor }) => {
-                  const { pos, parentOffset } =
-                    editor.view.state.selection.$anchor;
-                  const dom = editor.view.nodeDOM(pos - 1 - parentOffset);
-                  if (!dom) {
-                    return false;
-                  }
-                  return (dom as Element).classList.contains("preview");
-                },
-                icon: markRaw(MdiPencilOutline),
-                title: "编辑",
-                action: ({ editor }: { editor: Editor }) => {
-                  editor.chain().setSelectMarkdownNode().run();
-                },
-              },
-            },
-            {
               priority: 100,
               props: {
                 icon: markRaw(MdiDeleteForeverOutline),
@@ -142,32 +152,11 @@ const MarkdownEdited = Node.create({
           ],
         };
       },
-      getDraggable() {
-        return {
-          getRenderContainer({ dom }: { dom: HTMLElement }) {
-            let container = dom;
-            while (
-              container &&
-              !container.classList.contains("hybrid-edit-block")
-            ) {
-              container = container.parentElement as HTMLElement;
-            }
-            return {
-              el: container,
-              dragDomOffset: {
-                y: -5,
-              },
-            };
-          },
-          allowPropagationDownward: true,
-        };
-      },
     };
   },
 
   addNodeView() {
-    return ({ editor, node, getPos }) =>
-      new CodeMirrorView(editor, node, getPos as () => number, [markdown()]);
+    return VueNodeViewRenderer(CodeMirrorView);
   },
 
   addCommands() {
