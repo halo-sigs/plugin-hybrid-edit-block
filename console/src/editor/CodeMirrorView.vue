@@ -494,5 +494,6 @@ onBeforeUnmount(() => {
   min-width: 2em;
   text-align: right;
   padding-right: 0.5em;
+  background-color: white;
 }
 </style>
