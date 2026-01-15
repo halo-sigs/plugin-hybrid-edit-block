@@ -1,5 +1,5 @@
-import "./styles/index.scss";
-import { definePlugin } from "@halo-dev/console-shared";
+import "uno.css";
+import { definePlugin } from "@halo-dev/ui-shared";
 
 export default definePlugin({
   components: {},

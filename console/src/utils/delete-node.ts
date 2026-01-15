@@ -9,8 +9,10 @@ export const deleteNode = (nodeType: string, editor: Editor) => {
     for (let d = $pos.depth; d > 0; d--) {
       const node = $pos.node(d);
       if (node.type.name === nodeType) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (editor.dispatchTransaction)
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           editor.dispatchTransaction(
             state.tr.delete($pos.before(d), $pos.after(d)).scrollIntoView()
@@ -19,6 +21,7 @@ export const deleteNode = (nodeType: string, editor: Editor) => {
       }
     }
   } else {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const node = state.selection.node;
     if (node && node.type.name === nodeType) {
