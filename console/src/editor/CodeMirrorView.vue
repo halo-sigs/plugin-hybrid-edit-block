@@ -21,6 +21,7 @@ import {
 } from "@codemirror/language";
 import { autocompletion } from "@codemirror/autocomplete";
 import { PreviewRenderer } from "./preview-renderer";
+import { VButton } from "@halo-dev/components";
 import {
   Selection,
   TextSelection,
@@ -417,18 +418,12 @@ onBeforeUnmount(() => {
       </div>
 
       <div class=":uno: flex gap-2">
-        <button
-          class=":uno: px-3 py-1 text-[0.8125rem] text-[#409EFF] bg-white border border-[#409EFF] rounded-[3px] cursor-pointer transition-all duration-200 hover:text-white hover:bg-[#409EFF] active:scale-95"
-          @click.stop="toggleSplitMode"
-        >
+        <VButton ghost type="secondary" size="sm" @click="toggleSplitMode">
           {{ isSplitMode ? "退出分屏" : "分屏" }}
-        </button>
-        <button
-          class=":uno: px-3 py-1 text-[0.8125rem] text-[#4CCBA0] bg-white border border-[#4CCBA0] rounded-[3px] cursor-pointer transition-all duration-200 hover:text-white hover:bg-[#4CCBA0] active:scale-95"
-          @click.stop="togglePreviewMode"
-        >
+        </VButton>
+        <VButton v-if="!isSplitMode" size="sm" @click="togglePreviewMode">
           {{ isPreviewMode ? "编辑" : "预览" }}
-        </button>
+        </VButton>
       </div>
     </div>
 
