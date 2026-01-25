@@ -1,49 +1,51 @@
 plugins {
     id 'java'
-    id "com.github.node-gradle.node" version "5.0.0"
-    id "io.freefair.lombok" version "8.0.1"
-    id "run.halo.plugin.devtools" version "0.6.2"
+    id "io.freefair.lombok" version "8.13"
+    id "run.halo.plugin.devtools" version "0.6.1"
 }
 
 group 'run.halo.editor'
-sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
-    maven { url 'https://s01.oss.sonatype.org/content/repositories/releases' }
-    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://repo.spring.io/milestone' }
 }
 
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.10.0-SNAPSHOT')
+    implementation platform('run.halo.tools.platform:plugin:2.22.0')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
     useJUnitPlatform()
 }
 
-node {
-    nodeProjectDir = file("${project.projectDir}/console")
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
-tasks.register('installDepsForUI', PnpmTask) {
-    args = ['install']
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
 }
 
-tasks.register('buildFrontend', PnpmTask) {
-    args = ['build']
-    dependsOn('installDepsForUI')
+tasks.register('processUiResources', Copy) {
+    from project(':ui').layout.buildDirectory.dir('dist')
+    into layout.buildDirectory.dir('resources/main/console')
+    dependsOn project(':ui').tasks.named('assemble')
+    shouldRunAfter tasks.named('processResources')
 }
 
-tasks.named('build').configure {
-    dependsOn('buildFrontend')
+tasks.named('classes') {
+    dependsOn tasks.named('processUiResources')
 }
 
 halo {
-    version = "2.22"
+    version = '2.22'
 }
+

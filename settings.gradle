@@ -4,4 +4,4 @@ pluginManagement {
     }
 }
 rootProject.name = 'plugin-hybrid-edit-block'
-
+include 'ui'
