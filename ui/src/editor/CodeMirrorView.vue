@@ -34,6 +34,7 @@ import {
 } from "@halo-dev/richtext-editor";
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { EditorSelection, Line, SelectionRange } from "@codemirror/state";
+import { fetchSettings } from "../utils/settings";
 
 const props = defineProps(nodeViewProps);
 
@@ -382,8 +383,30 @@ watch(
   }
 );
 
-onMounted(() => {
-  setupSplitView();
+onMounted(async () => {
+  try {
+    const settings = await fetchSettings();
+    const defaultMode = settings.defaultMode || "all";
+
+    if (defaultMode === "all") {
+      setupSplitView();
+    } else if (defaultMode === "edit") {
+      isSplitMode.value = false;
+      isPreviewMode.value = false;
+      nextTick(() => {
+        createCodeMirror();
+      });
+    } else {
+      isSplitMode.value = false;
+      isPreviewMode.value = true;
+      nextTick(() => {
+        updateStandalonePreview();
+      });
+    }
+  } catch (error) {
+    console.error("Failed to fetch settings, using default mode:", error);
+    setupSplitView();
+  }
 });
 
 onBeforeUnmount(() => {
