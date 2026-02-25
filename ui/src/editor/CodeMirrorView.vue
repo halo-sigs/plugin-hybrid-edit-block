@@ -282,11 +282,19 @@ const forwardUpdate = (update: ViewUpdate) => {
   if (pos === undefined) {
     return;
   }
+
+  const nodeStart = pos;
+  const nodeEnd = pos + props.node.nodeSize;
+  const pmSel = props.editor.view.state.selection;
+
+  if (pmSel.from < nodeStart || pmSel.from > nodeEnd) {
+    return;
+  }
+
   let offset = pos + 1;
   const { main } = update.state.selection;
   const selFrom = offset + main.from;
   const selTo = offset + main.to;
-  const pmSel = props.editor.view.state.selection;
   if (update.docChanged || pmSel.from != selFrom || pmSel.to != selTo) {
     const tr = props.editor.view.state.tr;
     update.changes.iterChanges((fromA, toA, fromB, toB, text) => {
