@@ -18,6 +18,7 @@
     "@halo-dev/components": "^2.22.0",
     "@halo-dev/ui-shared": "^2.22.0",
     "@lezer/highlight": "1.1.6",
+    "axios": "^1.13.5",
     "marked": "^9.1.2",
     "marked-gfm-heading-id": "^3.1.2",
     "turndown": "^7.1.2",

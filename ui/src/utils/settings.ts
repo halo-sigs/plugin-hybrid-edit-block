@@ -1,17 +1,15 @@
-import { consoleApiClient } from "@halo-dev/api-client";
+import axios from "axios";
 
 export interface HybridEditBlockSetting {
   defaultMode: "all" | "edit" | "preview";
 }
 
 export async function fetchSettings(): Promise<HybridEditBlockSetting> {
-  const { data } = await consoleApiClient.plugin.plugin.fetchPluginJsonConfig({
-    name: "hybrid-edit-block",
-  });
-
-  const configMapData = data as Record<string, any>;
+  const { data } = await axios.get(
+    "/apis/api.hybrid-edit-block.halo.run/v1alpha1/config"
+  );
 
   return {
-    defaultMode: configMapData?.base?.defaultMode || "all",
+    defaultMode: data?.defaultMode || "all",
   };
 }
