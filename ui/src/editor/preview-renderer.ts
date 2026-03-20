@@ -7,6 +7,7 @@ import marked from "../utils/markdown";
 export class PreviewRenderer {
   private blockType: string;
   private shadowRoot: ShadowRoot;
+  private lastRenderedContent: string | Node | undefined = undefined;
 
   constructor(blockType: string, container: HTMLElement) {
     this.blockType = blockType;
@@ -20,6 +21,14 @@ export class PreviewRenderer {
    * @param content 要渲染的内容（文本或 DOM 节点）
    */
   render(content: string | Node): void {
+    if (
+      typeof content === "string" &&
+      typeof this.lastRenderedContent === "string" &&
+      content === this.lastRenderedContent
+    ) {
+      return;
+    }
+    this.lastRenderedContent = content;
     this.clearContainer();
 
     let previewNode: HTMLElement;
@@ -56,5 +65,6 @@ export class PreviewRenderer {
 
   setBlockType(blockType: string): void {
     this.blockType = blockType;
+    this.lastRenderedContent = undefined;
   }
 }

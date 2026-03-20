@@ -33,7 +33,7 @@ import {
   nodeViewProps,
 } from "@halo-dev/richtext-editor";
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
-import type { EditorSelection, Line, SelectionRange } from "@codemirror/state";
+import type { Line, SelectionRange } from "@codemirror/state";
 import { fetchSettings } from "../utils/settings";
 
 const props = defineProps(nodeViewProps);
@@ -125,23 +125,7 @@ const setupSplitView = () => {
 
   destroyCodeMirror();
 
-  cm = new CodeMirror({
-    doc: currentText,
-    extensions: [
-      autocompletion(),
-      cmKeymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
-      drawSelection(),
-      syntaxHighlighting(defaultHighlightStyle),
-      CodeMirror.updateListener.of((update) => {
-        forwardUpdate(update);
-        updateSplitPreview();
-      }),
-      ...(props.extension.options.extensions || []),
-    ],
-  });
-
-  editorContainerRef.value.innerHTML = "";
-  editorContainerRef.value.appendChild(cm.dom);
+  createCodeMirror(currentText);
 
   previewRenderer = new PreviewRenderer(
     blockType.value,
@@ -149,7 +133,9 @@ const setupSplitView = () => {
   );
   updateSplitPreview();
 
-  cm.focus();
+  if (cm) {
+    cm.focus();
+  }
 };
 
 const updateSplitPreview = () => {
@@ -172,11 +158,13 @@ const updateStandalonePreview = () => {
   previewRenderer.render(currentText);
 };
 
-const createCodeMirror = () => {
-  if (!editorContainerRef.value) return;
+const createCodeMirror = (doc: string): void => {
+  if (!editorContainerRef.value) {
+    return;
+  }
 
   cm = new CodeMirror({
-    doc: props.node.textContent,
+    doc,
     extensions: [
       autocompletion(),
       cmKeymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
@@ -184,7 +172,7 @@ const createCodeMirror = () => {
       syntaxHighlighting(defaultHighlightStyle),
       CodeMirror.updateListener.of((update) => {
         forwardUpdate(update);
-        if (isSplitMode.value) {
+        if (isSplitMode.value && update.docChanged) {
           updateSplitPreview();
         }
       }),
@@ -279,16 +267,23 @@ const forwardUpdate = (update: ViewUpdate) => {
   if (updating || !cm.hasFocus) {
     return;
   }
+  if (!update.docChanged) {
+    return;
+  }
+
   const pos = props.getPos?.();
   if (pos === undefined) {
     return;
   }
+
+  const pmSel = props.editor.view.state.selection;
+
   let offset = pos + 1;
   const { main } = update.state.selection;
   const selFrom = offset + main.from;
   const selTo = offset + main.to;
-  const pmSel = props.editor.view.state.selection;
-  if (update.docChanged || pmSel.from != selFrom || pmSel.to != selTo) {
+
+  if (pmSel.from != selFrom || pmSel.to != selTo) {
     const tr = props.editor.view.state.tr;
     update.changes.iterChanges((fromA, toA, fromB, toB, text) => {
       if (text.length) {
@@ -309,7 +304,7 @@ const forwardUpdate = (update: ViewUpdate) => {
 
 const selectNode = () => {
   if (!cm) {
-    createCodeMirror();
+    createCodeMirror(props.node.textContent);
   }
   props.editor.chain().scrollIntoView().run();
   if (cm) {
@@ -394,7 +389,7 @@ onMounted(async () => {
       isSplitMode.value = false;
       isPreviewMode.value = false;
       nextTick(() => {
-        createCodeMirror();
+        createCodeMirror(props.node.textContent);
       });
     } else {
       isSplitMode.value = false;
