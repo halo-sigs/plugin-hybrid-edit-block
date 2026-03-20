@@ -1,0 +1,15 @@
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: role-template-hybrid-edit-block-default
+  labels:
+    halo.run/role-template: "true"
+    halo.run/hidden: "true"
+    rbac.authorization.halo.run/aggregate-to-anonymous: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "editor-hybrid-edit-block"
+    rbac.authorization.halo.run/display-name: "HTML / Markdown 编辑块"
+rules:
+  - apiGroups: ["api.hybrid-edit-block.halo.run"]
+    resources: ["*"]
+    verbs: ["*"]
