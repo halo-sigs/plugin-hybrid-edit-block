@@ -1,12 +1,84 @@
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { keymap, type EditorView, type KeyBinding } from "@codemirror/view";
-import {
+import * as mteKernel from "@susisu/mte-kernel";
+
+type AlignmentValue = string;
+
+interface TableEditorOptions {
+  leftMarginChars?: Set<string>;
+  formatType?: string;
+  minDelimiterWidth?: number;
+  defaultAlignment?: string;
+  headerAlignment?: string;
+  smartCursor?: boolean;
+}
+
+type ResolvedTableEditorOptions = Required<TableEditorOptions>;
+
+interface TablePoint {
+  row: number;
+  column: number;
+}
+
+interface TableRange {
+  start: TablePoint;
+  end: TablePoint;
+}
+
+interface MteTextEditor {
+  getCursorPosition(): TablePoint;
+  setCursorPosition(pos: TablePoint): void;
+  setSelectionRange(range: TableRange): void;
+  getLastRow(): number;
+  acceptsTableEdit(row: number): boolean;
+  getLine(row: number): string;
+  insertLine(row: number, line: string): void;
+  deleteLine(row: number): void;
+  replaceLines(startRow: number, endRow: number, lines: Array<string>): void;
+  transact(func: () => void): void;
+}
+
+interface MteTableEditor {
+  cursorIsInTable(options: ResolvedTableEditorOptions): boolean;
+  format(options: ResolvedTableEditorOptions): void;
+  formatAll(options: ResolvedTableEditorOptions): void;
+  escape(options: ResolvedTableEditorOptions): void;
+  moveFocus(
+    rowOffset: number,
+    columnOffset: number,
+    options: ResolvedTableEditorOptions
+  ): void;
+  alignColumn(
+    alignment: AlignmentValue,
+    options: ResolvedTableEditorOptions
+  ): void;
+  nextCell(options: ResolvedTableEditorOptions): void;
+  previousCell(options: ResolvedTableEditorOptions): void;
+  nextRow(options: ResolvedTableEditorOptions): void;
+  insertRow(options: ResolvedTableEditorOptions): void;
+  deleteRow(options: ResolvedTableEditorOptions): void;
+  moveRow(offset: number, options: ResolvedTableEditorOptions): void;
+  insertColumn(options: ResolvedTableEditorOptions): void;
+  deleteColumn(options: ResolvedTableEditorOptions): void;
+  moveColumn(offset: number, options: ResolvedTableEditorOptions): void;
+}
+
+const {
   Alignment,
   Point,
-  Range,
   TableEditor,
-  options as createTableOptions,
-} from "@susisu/mte-kernel";
+  options: createTableOptions,
+} = mteKernel as {
+  Alignment: {
+    readonly NONE: AlignmentValue;
+    readonly LEFT: AlignmentValue;
+    readonly RIGHT: AlignmentValue;
+    readonly CENTER: AlignmentValue;
+  };
+  Point: new (row: number, column: number) => TablePoint;
+  TableEditor: new (textEditor: MteTextEditor) => MteTableEditor;
+  options: (options: TableEditorOptions) => ResolvedTableEditorOptions;
+};
 
 export type MarkdownTableCommandName =
   | "format"
@@ -40,7 +112,7 @@ const COMMANDS: Record<
   MarkdownTableCommandName,
   {
     requiresCursorInTable: boolean;
-    run: (tableEditor: TableEditor) => void;
+    run: (tableEditor: MteTableEditor) => void;
   }
 > = {
   format: {
@@ -137,14 +209,14 @@ const COMMANDS: Record<
   },
 };
 
-class CodeMirrorTableTextEditor {
+class CodeMirrorTableTextEditor implements MteTextEditor {
   private transactionDepth = 0;
   private workingLines: string[] | null = null;
   private workingSelection: { anchor: number; head: number } | null = null;
 
   constructor(private readonly view: EditorView) {}
 
-  getCursorPosition(): Point {
+  getCursorPosition(): TablePoint {
     const lines = this.getLines();
     const selection = this.workingSelection ?? {
       anchor: this.view.state.selection.main.anchor,
@@ -153,7 +225,7 @@ class CodeMirrorTableTextEditor {
     return offsetToPoint(lines, selection.head);
   }
 
-  setCursorPosition(pos: Point): void {
+  setCursorPosition(pos: TablePoint): void {
     if (this.transactionDepth === 0) {
       this.transact(() => this.setCursorPosition(pos));
       return;
@@ -163,7 +235,7 @@ class CodeMirrorTableTextEditor {
     this.workingSelection = { anchor, head: anchor };
   }
 
-  setSelectionRange(range: Range): void {
+  setSelectionRange(range: TableRange): void {
     if (this.transactionDepth === 0) {
       this.transact(() => this.setSelectionRange(range));
       return;
@@ -313,7 +385,7 @@ const normalizeLines = (lines: string[]): string[] => {
   return lines.length > 0 ? lines : [""];
 };
 
-const pointToOffset = (lines: string[], point: Point): number => {
+const pointToOffset = (lines: string[], point: TablePoint): number => {
   const row = clamp(point.row, 0, lines.length - 1);
   const column = clamp(point.column, 0, lines[row].length);
   let offset = 0;
@@ -325,7 +397,7 @@ const pointToOffset = (lines: string[], point: Point): number => {
   return offset + column;
 };
 
-const offsetToPoint = (lines: string[], offset: number): Point => {
+const offsetToPoint = (lines: string[], offset: number): TablePoint => {
   let remaining = clamp(offset, 0, lines.join("\n").length);
 
   for (let row = 0; row < lines.length; row += 1) {
@@ -453,73 +525,3 @@ const markdownTableKeybindings: KeyBinding[] = [
 export const markdownTableExtension = (): Extension => {
   return Prec.highest(keymap.of(markdownTableKeybindings));
 };
-
-declare module "@susisu/mte-kernel" {
-  export interface ITextEditor {
-    getCursorPosition(): Point;
-    setCursorPosition(pos: Point): void;
-    setSelectionRange(range: Range): void;
-    getLastRow(): number;
-    acceptsTableEdit(row: number): boolean;
-    getLine(row: number): string;
-    insertLine(row: number, line: string): void;
-    deleteLine(row: number): void;
-    replaceLines(startRow: number, endRow: number, lines: Array<string>): void;
-    transact(func: () => void): void;
-  }
-
-  export class Point {
-    constructor(row: number, column: number);
-    readonly row: number;
-    readonly column: number;
-  }
-
-  export class Range {
-    constructor(start: Point, end: Point);
-    readonly start: Point;
-    readonly end: Point;
-  }
-
-  export const Alignment: {
-    readonly NONE: string;
-    readonly LEFT: string;
-    readonly RIGHT: string;
-    readonly CENTER: string;
-  };
-
-  export interface TableEditorOptions {
-    leftMarginChars?: Set<string>;
-    formatType?: string;
-    minDelimiterWidth?: number;
-    defaultAlignment?: string;
-    headerAlignment?: string;
-    smartCursor?: boolean;
-  }
-
-  export function options(
-    options: TableEditorOptions
-  ): Required<TableEditorOptions>;
-
-  export class TableEditor {
-    constructor(textEditor: ITextEditor);
-    cursorIsInTable(options: Required<TableEditorOptions>): boolean;
-    format(options: Required<TableEditorOptions>): void;
-    formatAll(options: Required<TableEditorOptions>): void;
-    escape(options: Required<TableEditorOptions>): void;
-    moveFocus(
-      rowOffset: number,
-      columnOffset: number,
-      options: Required<TableEditorOptions>
-    ): void;
-    alignColumn(alignment: string, options: Required<TableEditorOptions>): void;
-    nextCell(options: Required<TableEditorOptions>): void;
-    previousCell(options: Required<TableEditorOptions>): void;
-    nextRow(options: Required<TableEditorOptions>): void;
-    insertRow(options: Required<TableEditorOptions>): void;
-    deleteRow(options: Required<TableEditorOptions>): void;
-    moveRow(offset: number, options: Required<TableEditorOptions>): void;
-    insertColumn(options: Required<TableEditorOptions>): void;
-    deleteColumn(options: Required<TableEditorOptions>): void;
-    moveColumn(offset: number, options: Required<TableEditorOptions>): void;
-  }
-}
