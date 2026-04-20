@@ -34,7 +34,6 @@ import {
 } from "@halo-dev/richtext-editor";
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { Line, SelectionRange } from "@codemirror/state";
-
 const props = defineProps(nodeViewProps);
 
 const editorContainerRef = ref<HTMLElement>();
@@ -64,7 +63,6 @@ const blockLabel = computed<string>(() => {
       return blockType.value;
   }
 });
-
 let cm: CodeMirror | undefined;
 let updating = false;
 let previewRenderer: PreviewRenderer | undefined;
