@@ -41,6 +41,9 @@ importers:
       '@lezer/highlight':
         specifier: 1.1.6
         version: 1.1.6
+      '@susisu/mte-kernel':
+        specifier: ^2.1.1
+        version: 2.1.1
       marked:
         specifier: ^9.1.2
         version: 9.1.6
@@ -911,6 +914,9 @@ packages:
 
   '@rushstack/eslint-patch@1.15.0':
     resolution: {integrity: sha512-ojSshQPKwVvSMR8yT2L/QtUkV5SXi/IfDiJ4/8d6UbTPjiHVmxZzUAzGD8Tzks1b9+qQkZa0isUOvYObedITaw==}
+
+  '@susisu/mte-kernel@2.1.1':
+    resolution: {integrity: sha512-i2lucPD0BOUNIY6P0MGIUbJ/piV8iNzwB8QU1fdkRLls85rq8NJa75oeZVWo2PLrUWjN64+3oD85kZFsx3ovyA==}
 
   '@swc/helpers@0.5.18':
     resolution: {integrity: sha512-TXTnIcNJQEKwThMMqBXsZ4VGAza6bvN4pa41Rkqoio6QBKMvo+5lexeTMScGCIxtzgQJzElcvIltani+adC5PQ==}
@@ -2310,6 +2316,10 @@ packages:
 
   mdurl@2.0.0:
     resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
+
+  meaw@5.0.0:
+    resolution: {integrity: sha512-yaK9Pnj6JrLcQGEqDUS0WGUEiaFg9Q215isi8mzcDVOjeGr5oS863hu+/ZS49g+azKPo5Wbpk3tgkP2+YOyZZw==}
+    engines: {node: '>=10.0.0'}
 
   memorystream@0.3.1:
     resolution: {integrity: sha512-S3UwM3yj5mtUSEfP41UZmt/0SCoVYUcU1rkXv+BQ5Ig8ndL4sPoJNBUJERafdPb5jjHJGuMgytgKvKIf58XNBw==}
@@ -4234,6 +4244,10 @@ snapshots:
 
   '@rushstack/eslint-patch@1.15.0': {}
 
+  '@susisu/mte-kernel@2.1.1':
+    dependencies:
+      meaw: 5.0.0
+
   '@swc/helpers@0.5.18':
     dependencies:
       tslib: 2.8.1
@@ -5836,6 +5850,8 @@ snapshots:
   mdn-data@2.12.2: {}
 
   mdurl@2.0.0: {}
+
+  meaw@5.0.0: {}
 
   memorystream@0.3.1: {}
 
