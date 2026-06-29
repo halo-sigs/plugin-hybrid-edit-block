@@ -18,6 +18,7 @@ import { html } from "@codemirror/lang-html";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
 import { lineNumbers } from "@codemirror/view";
+import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
 
 const temporaryDocument = document.implementation.createHTMLDocument();
 declare module "@halo-dev/richtext-editor" {
@@ -122,7 +123,7 @@ const HtmlEdited = Node.create<ExtensionOptions>({
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(CodeMirrorView);
+    return VueNodeViewRenderer(CodeMirrorView, codeMirrorNodeViewOptions);
   },
 
   addCommands() {
