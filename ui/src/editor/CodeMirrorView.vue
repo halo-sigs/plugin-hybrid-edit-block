@@ -387,6 +387,7 @@ onBeforeUnmount(() => {
 <template>
   <node-view-wrapper
     class=":uno: mt-3 outline outline-1 outline-[#ccc] rounded overflow-hidden hover:outline-[#55c6a0] transition-all"
+    contenteditable="false"
   >
     <div
       class=":uno: flex items-center justify-between px-3 py-2 bg-[#f5f7fa] border-b border-[#e4e7ed]"

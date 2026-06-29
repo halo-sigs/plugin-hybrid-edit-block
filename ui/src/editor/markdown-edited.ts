@@ -21,6 +21,7 @@ import { gfm } from "turndown-plugin-gfm";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
 import { markdownTableExtension } from "./markdown-table";
+import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
 const temporaryDocument = document.implementation.createHTMLDocument();
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -157,7 +158,7 @@ const MarkdownEdited = Node.create<ExtensionOptions>({
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(CodeMirrorView);
+    return VueNodeViewRenderer(CodeMirrorView, codeMirrorNodeViewOptions);
   },
 
   addCommands() {
