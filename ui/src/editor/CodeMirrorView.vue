@@ -25,7 +25,6 @@ import { VButton } from "@halo-dev/components";
 import {
   Selection,
   TextSelection,
-  exitCode,
   undo,
   redo,
   isActive,
@@ -199,9 +198,6 @@ const codeMirrorKeymap = (): KeyBinding[] => {
     {
       key: "Ctrl-Enter",
       run: () => {
-        if (!exitCode()) {
-          return false;
-        }
         view.focus();
         return true;
       },
