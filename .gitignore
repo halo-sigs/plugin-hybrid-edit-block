@@ -72,4 +72,5 @@ application-local.properties
 
 /admin-frontend/node_modules/
 /workplace/
+.pnpm-store/
 /src/main/resources/console/
