@@ -15,8 +15,8 @@
     "@codemirror/language-data": "^6.3.1",
     "@codemirror/state": "^6.3.1",
     "@codemirror/view": "^6.21.3",
-    "@halo-dev/components": "^2.25.2",
-    "@halo-dev/ui-shared": "^2.25.2",
+    "@halo-dev/components": "^2.26.0",
+    "@halo-dev/ui-shared": "^2.26.0",
     "@lezer/highlight": "1.1.6",
     "@susisu/mte-kernel": "^2.1.1",
     "marked": "^9.1.2",
@@ -27,8 +27,8 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@halo-dev/richtext-editor": "^2.25.2",
-    "@halo-dev/ui-plugin-bundler-kit": "https://pkg.pr.new/@halo-dev/ui-plugin-bundler-kit@10232",
+    "@halo-dev/richtext-editor": "^2.26.0",
+    "@halo-dev/ui-plugin-bundler-kit": "^2.26.0",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/mingcute": "^1.2.7",
     "@rushstack/eslint-patch": "^1.15.0",
