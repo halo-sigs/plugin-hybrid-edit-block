@@ -14,13 +14,11 @@ import {
 import { markRaw } from "vue";
 import MdiLanguageMarkdown from "~icons/mdi/language-markdown";
 import CodeMirrorView from "./CodeMirrorView.vue";
-import { markdown } from "@codemirror/lang-markdown";
 import marked from "../utils/markdown";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
-import { markdownTableExtension } from "./markdown-table";
 import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
 const temporaryDocument = document.implementation.createHTMLDocument();
 const turndownService = new TurndownService({
@@ -95,7 +93,6 @@ const MarkdownEdited = Node.create<ExtensionOptions>({
         class: "markdown-edited",
       },
       blockType: "markdown",
-      extensions: [markdown(), markdownTableExtension()],
       getCommandMenuItems() {
         return {
           priority: 82,

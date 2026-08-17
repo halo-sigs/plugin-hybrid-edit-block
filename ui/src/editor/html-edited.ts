@@ -14,10 +14,8 @@ import {
 import { markRaw } from "vue";
 import MdiLanguageHtml5 from "~icons/mdi/language-html5";
 import CodeMirrorView from "./CodeMirrorView.vue";
-import { html } from "@codemirror/lang-html";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
-import { lineNumbers } from "@codemirror/view";
 import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
 
 const temporaryDocument = document.implementation.createHTMLDocument();
@@ -59,14 +57,13 @@ const HtmlEdited = Node.create<ExtensionOptions>({
   addOptions() {
     return {
       blockType: "html",
-      extensions: [
-        html({
-          matchClosingTags: true,
-          autoCloseTags: true,
-          selfClosingTags: true,
-        }),
-        lineNumbers(),
-      ],
+      // Resolved lazily by CodeMirrorView via loadLanguageExtensions() so the
+      // CodeMirror language packages are not part of the editor startup bundle.
+      languageOptions: {
+        matchClosingTags: true,
+        autoCloseTags: true,
+        selfClosingTags: true,
+      },
       getCommandMenuItems() {
         return {
           priority: 81,

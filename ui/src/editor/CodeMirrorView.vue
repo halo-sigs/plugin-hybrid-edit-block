@@ -7,25 +7,12 @@ import {
   nextTick,
   computed,
 } from "vue";
-import {
-  EditorView as CodeMirror,
-  ViewUpdate,
-  keymap as cmKeymap,
-  type KeyBinding,
-  drawSelection,
-} from "@codemirror/view";
-import { defaultKeymap } from "@codemirror/commands";
-import {
-  syntaxHighlighting,
-  defaultHighlightStyle,
-} from "@codemirror/language";
-import { autocompletion } from "@codemirror/autocomplete";
+import type { EditorView, KeyBinding, ViewUpdate } from "@codemirror/view";
 import { PreviewRenderer } from "./preview-renderer";
 import { VButton } from "@halo-dev/components";
 import {
   Selection,
   TextSelection,
-  exitCode,
   undo,
   redo,
   isActive,
@@ -34,6 +21,7 @@ import {
 } from "@halo-dev/richtext-editor";
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { Line, SelectionRange } from "@codemirror/state";
+import { loadLanguageExtensions } from "./language-extensions";
 const props = defineProps(nodeViewProps);
 
 const editorContainerRef = ref<HTMLElement>();
@@ -63,9 +51,10 @@ const blockLabel = computed<string>(() => {
       return blockType.value;
   }
 });
-let cm: CodeMirror | undefined;
+let cm: EditorView | undefined;
 let updating = false;
 let previewRenderer: PreviewRenderer | undefined;
+let codeMirrorCreationToken = 0;
 
 const togglePreviewMode = () => {
   if (isSplitMode.value) {
@@ -75,7 +64,7 @@ const togglePreviewMode = () => {
   if (isPreviewMode.value) {
     isPreviewMode.value = false;
     nextTick(() => {
-      selectNode();
+      void selectNode();
     });
   } else {
     isPreviewMode.value = true;
@@ -102,7 +91,7 @@ const toggleSplitMode = () => {
     isPreviewMode.value = false;
 
     nextTick(() => {
-      setupSplitView();
+      void setupSplitView();
     });
   }
 };
@@ -113,7 +102,7 @@ const handleDoubleClick = () => {
   }
 };
 
-const setupSplitView = () => {
+const setupSplitView = async () => {
   if (!editorContainerRef.value || !previewContainerRef.value) {
     return;
   }
@@ -122,7 +111,7 @@ const setupSplitView = () => {
 
   destroyCodeMirror();
 
-  createCodeMirror(currentText);
+  await createCodeMirror(currentText);
 
   previewRenderer = new PreviewRenderer(
     blockType.value,
@@ -155,25 +144,49 @@ const updateStandalonePreview = () => {
   previewRenderer.render(currentText);
 };
 
-const createCodeMirror = (doc: string): void => {
+const createCodeMirror = async (doc: string): Promise<void> => {
   if (!editorContainerRef.value) {
     return;
   }
 
-  cm = new CodeMirror({
+  const token = ++codeMirrorCreationToken;
+
+  // CodeMirror and its language packages are heavy, so they are loaded on
+  // demand when a hybrid edit block actually mounts its embedded editor.
+  const [
+    { EditorView, keymap, drawSelection },
+    { defaultKeymap },
+    { syntaxHighlighting, defaultHighlightStyle },
+    { autocompletion },
+  ] = await Promise.all([
+    import("@codemirror/view"),
+    import("@codemirror/commands"),
+    import("@codemirror/language"),
+    import("@codemirror/autocomplete"),
+  ]);
+  const languageExtensions = await loadLanguageExtensions(
+    blockType.value,
+    props.extension.options.languageOptions
+  );
+
+  if (token !== codeMirrorCreationToken) {
+    return;
+  }
+
+  cm = new EditorView({
     doc,
     extensions: [
       autocompletion(),
-      cmKeymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
+      keymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
       drawSelection(),
       syntaxHighlighting(defaultHighlightStyle),
-      CodeMirror.updateListener.of((update) => {
+      EditorView.updateListener.of((update) => {
         forwardUpdate(update);
         if (isSplitMode.value && update.docChanged) {
           updateSplitPreview();
         }
       }),
-      ...(props.extension.options.extensions || []),
+      ...languageExtensions,
     ],
   });
 
@@ -183,6 +196,7 @@ const createCodeMirror = (doc: string): void => {
 };
 
 const destroyCodeMirror = () => {
+  codeMirrorCreationToken++;
   if (cm) {
     cm.destroy();
     cm = undefined;
@@ -199,9 +213,6 @@ const codeMirrorKeymap = (): KeyBinding[] => {
     {
       key: "Ctrl-Enter",
       run: () => {
-        if (!exitCode()) {
-          return false;
-        }
         view.focus();
         return true;
       },
@@ -299,11 +310,11 @@ const forwardUpdate = (update: ViewUpdate) => {
   }
 };
 
-const selectNode = () => {
-  if (!cm) {
-    createCodeMirror(props.node.textContent);
-  }
+const selectNode = async () => {
   props.editor.chain().scrollIntoView().run();
+  if (!cm) {
+    await createCodeMirror(props.node.textContent);
+  }
   if (cm) {
     cm.focus();
   }
@@ -370,13 +381,13 @@ watch(
   () => props.selected,
   (selected) => {
     if (selected) {
-      selectNode();
+      void selectNode();
     }
   }
 );
 
 onMounted(() => {
-  setupSplitView();
+  void setupSplitView();
 });
 
 onBeforeUnmount(() => {
