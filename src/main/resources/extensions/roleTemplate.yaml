@@ -11,5 +11,5 @@ metadata:
     rbac.authorization.halo.run/display-name: "HTML / Markdown 编辑块"
 rules:
   - apiGroups: ["api.hybrid-edit-block.halo.run"]
-    resources: ["*"]
-    verbs: ["*"]
+    resources: ["config"]
+    verbs: ["list"]

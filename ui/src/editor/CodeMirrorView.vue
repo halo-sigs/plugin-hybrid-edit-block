@@ -7,25 +7,13 @@ import {
   nextTick,
   computed,
 } from "vue";
-import {
-  EditorView as CodeMirror,
-  ViewUpdate,
-  keymap as cmKeymap,
-  type KeyBinding,
-  drawSelection,
-} from "@codemirror/view";
-import { defaultKeymap } from "@codemirror/commands";
-import {
-  syntaxHighlighting,
-  defaultHighlightStyle,
-} from "@codemirror/language";
-import { autocompletion } from "@codemirror/autocomplete";
+import type { EditorView, KeyBinding, ViewUpdate } from "@codemirror/view";
 import { PreviewRenderer } from "./preview-renderer";
 import { VButton } from "@halo-dev/components";
 import {
   Selection,
   TextSelection,
-  exitCode,
+  NodeRangeSelection,
   undo,
   redo,
   isActive,
@@ -35,7 +23,11 @@ import {
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { Line, SelectionRange } from "@codemirror/state";
 import { fetchSettings } from "../utils/settings";
-
+import { loadLanguageExtensions } from "./language-extensions";
+import {
+  isHybridBlockActive,
+  isHybridBlockNodeSelection,
+} from "./hybrid-block-selection";
 const props = defineProps(nodeViewProps);
 
 const editorContainerRef = ref<HTMLElement>();
@@ -65,12 +57,21 @@ const blockLabel = computed<string>(() => {
       return blockType.value;
   }
 });
-
-let cm: CodeMirror | undefined;
+let cm: EditorView | undefined;
 let updating = false;
 let previewRenderer: PreviewRenderer | undefined;
+let codeMirrorCreationToken = 0;
+let defaultModeLoadToken = 0;
+
+type IsCurrentDefaultMode = () => boolean;
+
+const invalidateDefaultModeLoad = () => {
+  defaultModeLoadToken++;
+};
 
 const togglePreviewMode = () => {
+  invalidateDefaultModeLoad();
+
   if (isSplitMode.value) {
     toggleSplitMode();
   }
@@ -78,7 +79,7 @@ const togglePreviewMode = () => {
   if (isPreviewMode.value) {
     isPreviewMode.value = false;
     nextTick(() => {
-      selectNode();
+      void selectNode();
     });
   } else {
     isPreviewMode.value = true;
@@ -91,6 +92,8 @@ const togglePreviewMode = () => {
 };
 
 const toggleSplitMode = () => {
+  invalidateDefaultModeLoad();
+
   if (isSplitMode.value) {
     isSplitMode.value = false;
     isPreviewMode.value = true;
@@ -105,7 +108,7 @@ const toggleSplitMode = () => {
     isPreviewMode.value = false;
 
     nextTick(() => {
-      setupSplitView();
+      void setupSplitView();
     });
   }
 };
@@ -116,7 +119,9 @@ const handleDoubleClick = () => {
   }
 };
 
-const setupSplitView = () => {
+const setupSplitView = async (
+  isCurrent: IsCurrentDefaultMode = () => isSplitMode.value
+) => {
   if (!editorContainerRef.value || !previewContainerRef.value) {
     return;
   }
@@ -125,7 +130,11 @@ const setupSplitView = () => {
 
   destroyCodeMirror();
 
-  createCodeMirror(currentText);
+  await createCodeMirror(currentText);
+
+  if (!isCurrent() || !cm || !previewContainerRef.value) {
+    return;
+  }
 
   previewRenderer = new PreviewRenderer(
     blockType.value,
@@ -133,9 +142,43 @@ const setupSplitView = () => {
   );
   updateSplitPreview();
 
-  if (cm) {
-    cm.focus();
+  if (cm && isCurrentNodeSelected()) {
+    focusCodeMirror();
   }
+};
+
+const applyDefaultMode = async (
+  defaultMode: "all" | "edit" | "preview",
+  isCurrent: IsCurrentDefaultMode
+) => {
+  if (!isCurrent()) {
+    return;
+  }
+
+  destroyCodeMirror();
+  previewRenderer = undefined;
+  isSplitMode.value = defaultMode === "all";
+  isPreviewMode.value = defaultMode === "preview";
+
+  await nextTick();
+  if (!isCurrent()) {
+    return;
+  }
+
+  if (defaultMode === "all") {
+    await setupSplitView(isCurrent);
+    return;
+  }
+
+  if (defaultMode === "edit") {
+    await createCodeMirror(props.node.textContent);
+    if (isCurrent() && cm && isCurrentNodeSelected()) {
+      focusCodeMirror();
+    }
+    return;
+  }
+
+  updateStandalonePreview();
 };
 
 const updateSplitPreview = () => {
@@ -158,25 +201,55 @@ const updateStandalonePreview = () => {
   previewRenderer.render(currentText);
 };
 
-const createCodeMirror = (doc: string): void => {
+const createCodeMirror = async (doc: string): Promise<void> => {
   if (!editorContainerRef.value) {
     return;
   }
 
-  cm = new CodeMirror({
+  const token = ++codeMirrorCreationToken;
+
+  // CodeMirror and its language packages are heavy, so they are loaded on
+  // demand when a hybrid edit block actually mounts its embedded editor.
+  const [
+    { EditorView, keymap, drawSelection },
+    { defaultKeymap },
+    { syntaxHighlighting, defaultHighlightStyle },
+    { autocompletion },
+  ] = await Promise.all([
+    import("@codemirror/view"),
+    import("@codemirror/commands"),
+    import("@codemirror/language"),
+    import("@codemirror/autocomplete"),
+  ]);
+  const languageExtensions = await loadLanguageExtensions(
+    blockType.value,
+    props.extension.options.languageOptions
+  );
+
+  if (token !== codeMirrorCreationToken) {
+    return;
+  }
+
+  cm = new EditorView({
     doc,
     extensions: [
       autocompletion(),
-      cmKeymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
+      keymap.of([...codeMirrorKeymap(), ...defaultKeymap]),
       drawSelection(),
       syntaxHighlighting(defaultHighlightStyle),
-      CodeMirror.updateListener.of((update) => {
+      EditorView.updateListener.of((update) => {
         forwardUpdate(update);
+        if (
+          update.view.hasFocus &&
+          (update.focusChanged || update.selectionSet)
+        ) {
+          syncProseMirrorSelection(update.state.selection.main);
+        }
         if (isSplitMode.value && update.docChanged) {
           updateSplitPreview();
         }
       }),
-      ...(props.extension.options.extensions || []),
+      ...languageExtensions,
     ],
   });
 
@@ -186,23 +259,100 @@ const createCodeMirror = (doc: string): void => {
 };
 
 const destroyCodeMirror = () => {
+  codeMirrorCreationToken++;
   if (cm) {
     cm.destroy();
     cm = undefined;
   }
 };
 
+const showBubbleMenu = () => {
+  const pluginKey = props.extension.options.bubbleMenuPluginKey;
+  if (
+    !pluginKey ||
+    !isHybridBlockActive(props.editor.view.state, props.node.type.name)
+  ) {
+    return;
+  }
+
+  props.editor.view.dispatch(
+    props.editor.view.state.tr.setMeta(pluginKey, "show")
+  );
+};
+
+const syncProseMirrorSelection = (selection: SelectionRange) => {
+  const pos = props.getPos?.();
+  if (pos === undefined) {
+    return;
+  }
+
+  const { state } = props.editor.view;
+  const from = pos + 1 + selection.from;
+  const to = pos + 1 + selection.to;
+  if (
+    !(state.selection instanceof TextSelection) ||
+    state.selection.from !== from ||
+    state.selection.to !== to
+  ) {
+    props.editor.view.dispatch(
+      state.tr.setSelection(TextSelection.create(state.doc, from, to))
+    );
+  }
+
+  showBubbleMenu();
+};
+
+const isCurrentNodeSelected = () => {
+  const pos = props.getPos?.();
+  return (
+    pos !== undefined &&
+    isHybridBlockNodeSelection(
+      props.editor.view.state,
+      props.node.type.name,
+      pos
+    )
+  );
+};
+
+const focusCodeMirror = () => {
+  if (!cm) {
+    return;
+  }
+
+  cm.focus();
+  showBubbleMenu();
+};
+
+const selectWholeEditor = (codeMirrorView: EditorView) => {
+  const { main } = codeMirrorView.state.selection;
+  if (main.from !== 0 || main.to !== codeMirrorView.state.doc.length) {
+    return false;
+  }
+
+  const { state, dispatch } = props.editor.view;
+  const selection = NodeRangeSelection.create(
+    state.doc,
+    0,
+    state.doc.content.size
+  );
+  dispatch(state.tr.setSelection(selection).scrollIntoView());
+  props.editor.view.focus();
+  return true;
+};
+
 const codeMirrorKeymap = (): KeyBinding[] => {
   const view = props.editor.view;
   return [
+    { key: "Mod-a", run: selectWholeEditor },
     { key: "ArrowUp", run: () => maybeEscape("line", -1) },
     { key: "ArrowLeft", run: () => maybeEscape("char", -1) },
     { key: "ArrowDown", run: () => maybeEscape("line", 1) },
     { key: "ArrowRight", run: () => maybeEscape("char", 1) },
     {
       key: "Ctrl-Enter",
+      mac: "Cmd-Enter",
       run: () => {
-        if (!exitCode()) {
+        if (!props.editor.commands.exitCode()) {
           return false;
         }
         view.focus();
@@ -302,13 +452,13 @@ const forwardUpdate = (update: ViewUpdate) => {
   }
 };
 
-const selectNode = () => {
-  if (!cm) {
-    createCodeMirror(props.node.textContent);
-  }
+const selectNode = async () => {
   props.editor.chain().scrollIntoView().run();
+  if (!cm) {
+    await createCodeMirror(props.node.textContent);
+  }
   if (cm) {
-    cm.focus();
+    focusCodeMirror();
   }
 };
 
@@ -369,49 +519,25 @@ watch(
   { deep: true }
 );
 
-watch(
-  () => props.selected,
-  (selected) => {
-    if (selected) {
-      selectNode();
-    }
-  }
-);
+onMounted(() => {
+  const loadToken = ++defaultModeLoadToken;
+  const isCurrent = () => loadToken === defaultModeLoadToken;
 
-onMounted(async () => {
-  try {
-    const settings = await fetchSettings();
-    const defaultMode = settings.defaultMode || "all";
-
-    if (defaultMode === "all") {
-      setupSplitView();
-    } else if (defaultMode === "edit") {
-      isSplitMode.value = false;
-      isPreviewMode.value = false;
-      nextTick(() => {
-        createCodeMirror(props.node.textContent);
-      });
-    } else {
-      isSplitMode.value = false;
-      isPreviewMode.value = true;
-      nextTick(() => {
-        updateStandalonePreview();
-      });
-    }
-  } catch (error) {
-    console.error("Failed to fetch settings, using default mode:", error);
-    setupSplitView();
-  }
+  void fetchSettings().then(({ defaultMode }) => {
+    return applyDefaultMode(defaultMode, isCurrent);
+  });
 });
 
 onBeforeUnmount(() => {
+  invalidateDefaultModeLoad();
   destroyCodeMirror();
   previewRenderer = undefined;
 });
 </script>
 <template>
   <node-view-wrapper
-    class=":uno: mt-3 outline outline-1 outline-[#ccc] rounded overflow-hidden hover:outline-[#55c6a0] transition-all"
+    class="hybrid-edit-block :uno: mt-3 outline outline-1 outline-[#ccc] rounded overflow-hidden transition-all"
+    contenteditable="false"
   >
     <div
       class=":uno: flex items-center justify-between px-3 py-2 bg-[#f5f7fa] border-b border-[#e4e7ed]"
@@ -476,6 +602,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.hybrid-edit-block:not(.ProseMirror-selectednode):not(
+    .ProseMirror-selectednoderange
+  ):not(.range-fake-selection):hover {
+  outline-color: #55c6a0;
+}
+
 :deep(.cm-editor) {
   min-height: 10em;
   height: 100%;

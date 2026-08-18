@@ -2,3 +2,7 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - core-js
   - esbuild
+peerDependencyRules:
+  ignoreMissing:
+    - '@rsbuild/core'
+    - '@rsbuild/plugin-vue'

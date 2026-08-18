@@ -5,6 +5,11 @@ import {
   transformerCompileClass,
 } from "unocss";
 export default defineConfig({
-  presets: [presetWind3(), presetIcons()],
+  presets: [
+    presetWind3(),
+    presetIcons({
+      warn: true,
+    }),
+  ],
   transformers: [transformerCompileClass()],
 });

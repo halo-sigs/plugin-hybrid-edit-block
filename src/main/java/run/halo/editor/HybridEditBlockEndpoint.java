@@ -33,7 +33,7 @@ public class HybridEditBlockEndpoint implements CustomEndpoint {
 
     private Mono<ServerResponse> getConfig(org.springframework.web.reactive.function.server.ServerRequest request) {
         return settingFetcher.fetch(HybridEditBlockSetting.GROUP, HybridEditBlockSetting.class)
-                .defaultIfEmpty(new HybridEditBlockSetting("all"))
+                .defaultIfEmpty(HybridEditBlockSetting.defaults())
                 .flatMap(config -> ServerResponse.ok().bodyValue(config));
     }
 
