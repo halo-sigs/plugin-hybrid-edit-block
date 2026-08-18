@@ -1,6 +1,5 @@
 import {
   findParentNode,
-  isActive,
   mergeAttributes,
   Node,
   Fragment,
@@ -17,6 +16,14 @@ import CodeMirrorView from "./CodeMirrorView.vue";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
 import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
+import {
+  getHybridBlockVirtualElement,
+  isHybridBlockActive,
+} from "./hybrid-block-selection";
+import {
+  HTML_EDITED_BUBBLE_MENU_KEY,
+  HYBRID_EDIT_BLOCK_NODE_CONFIG,
+} from "./hybrid-block-config";
 
 const temporaryDocument = document.implementation.createHTMLDocument();
 declare module "@halo-dev/richtext-editor" {
@@ -34,6 +41,8 @@ const HtmlEdited = Node.create<ExtensionOptions>({
   content: "text*",
 
   group: "block",
+
+  ...HYBRID_EDIT_BLOCK_NODE_CONFIG,
 
   defining: true,
 
@@ -57,6 +66,7 @@ const HtmlEdited = Node.create<ExtensionOptions>({
   addOptions() {
     return {
       blockType: "html",
+      bubbleMenuPluginKey: HTML_EDITED_BUBBLE_MENU_KEY,
       // Resolved lazily by CodeMirrorView via loadLanguageExtensions() so the
       // CodeMirror language packages are not part of the editor startup bundle.
       languageOptions: {
@@ -96,12 +106,14 @@ const HtmlEdited = Node.create<ExtensionOptions>({
           },
         ];
       },
-      getBubbleMenu() {
+      getBubbleMenu({ editor }: { editor: Editor }) {
         return {
-          pluginKey: "htmlEditedBubbleMenu",
+          pluginKey: HTML_EDITED_BUBBLE_MENU_KEY,
           shouldShow: ({ state }: { state: EditorState }): boolean => {
-            return isActive(state, HtmlEdited.name);
+            return isHybridBlockActive(state, HtmlEdited.name);
           },
+          getReferencedVirtualElement: () =>
+            getHybridBlockVirtualElement(editor, HtmlEdited.name),
           items: [
             {
               priority: 100,
@@ -156,7 +168,7 @@ const HtmlEdited = Node.create<ExtensionOptions>({
         tag: "div[class=html-edited]",
         getContent: (node, schema) => {
           const htmlNode = node as HTMLElement;
-          if (!htmlNode) {
+          if (!htmlNode?.innerHTML) {
             return Fragment.empty;
           }
           const textNode = schema.text(htmlNode.innerHTML);
