@@ -1,6 +1,5 @@
 import {
   findParentNode,
-  isActive,
   mergeAttributes,
   Node,
   Fragment,
@@ -20,6 +19,14 @@ import { gfm } from "turndown-plugin-gfm";
 import MdiDeleteForeverOutline from "~icons/mdi/delete-forever-outline?color=red";
 import { deleteNode } from "../utils/delete-node";
 import { codeMirrorNodeViewOptions } from "./code-mirror-node-view";
+import {
+  getHybridBlockVirtualElement,
+  isHybridBlockActive,
+} from "./hybrid-block-selection";
+import {
+  HYBRID_EDIT_BLOCK_NODE_CONFIG,
+  MARKDOWN_EDITED_BUBBLE_MENU_KEY,
+} from "./hybrid-block-config";
 const temporaryDocument = document.implementation.createHTMLDocument();
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -68,6 +75,8 @@ const MarkdownEdited = Node.create<ExtensionOptions>({
 
   group: "block",
 
+  ...HYBRID_EDIT_BLOCK_NODE_CONFIG,
+
   defining: true,
 
   addAttributes() {
@@ -93,6 +102,7 @@ const MarkdownEdited = Node.create<ExtensionOptions>({
         class: "markdown-edited",
       },
       blockType: "markdown",
+      bubbleMenuPluginKey: MARKDOWN_EDITED_BUBBLE_MENU_KEY,
       getCommandMenuItems() {
         return {
           priority: 82,
@@ -131,12 +141,14 @@ const MarkdownEdited = Node.create<ExtensionOptions>({
           },
         ];
       },
-      getBubbleMenu() {
+      getBubbleMenu({ editor }: { editor: Editor }) {
         return {
-          pluginKey: "htmlEditedBubbleMenu",
+          pluginKey: MARKDOWN_EDITED_BUBBLE_MENU_KEY,
           shouldShow: ({ state }: { state: EditorState }): boolean => {
-            return isActive(state, MarkdownEdited.name);
+            return isHybridBlockActive(state, MarkdownEdited.name);
           },
+          getReferencedVirtualElement: () =>
+            getHybridBlockVirtualElement(editor, MarkdownEdited.name),
           items: [
             {
               priority: 100,

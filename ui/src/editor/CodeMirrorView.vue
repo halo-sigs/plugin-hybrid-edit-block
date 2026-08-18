@@ -13,6 +13,7 @@ import { VButton } from "@halo-dev/components";
 import {
   Selection,
   TextSelection,
+  NodeRangeSelection,
   undo,
   redo,
   isActive,
@@ -22,6 +23,10 @@ import {
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { Line, SelectionRange } from "@codemirror/state";
 import { loadLanguageExtensions } from "./language-extensions";
+import {
+  isHybridBlockActive,
+  isHybridBlockNodeSelection,
+} from "./hybrid-block-selection";
 const props = defineProps(nodeViewProps);
 
 const editorContainerRef = ref<HTMLElement>();
@@ -119,8 +124,8 @@ const setupSplitView = async () => {
   );
   updateSplitPreview();
 
-  if (cm) {
-    cm.focus();
+  if (cm && isCurrentNodeSelected()) {
+    focusCodeMirror();
   }
 };
 
@@ -182,6 +187,12 @@ const createCodeMirror = async (doc: string): Promise<void> => {
       syntaxHighlighting(defaultHighlightStyle),
       EditorView.updateListener.of((update) => {
         forwardUpdate(update);
+        if (
+          update.view.hasFocus &&
+          (update.focusChanged || update.selectionSet)
+        ) {
+          syncProseMirrorSelection(update.state.selection.main);
+        }
         if (isSplitMode.value && update.docChanged) {
           updateSplitPreview();
         }
@@ -203,16 +214,95 @@ const destroyCodeMirror = () => {
   }
 };
 
+const showBubbleMenu = () => {
+  const pluginKey = props.extension.options.bubbleMenuPluginKey;
+  if (
+    !pluginKey ||
+    !isHybridBlockActive(props.editor.view.state, props.node.type.name)
+  ) {
+    return;
+  }
+
+  props.editor.view.dispatch(
+    props.editor.view.state.tr.setMeta(pluginKey, "show")
+  );
+};
+
+const syncProseMirrorSelection = (selection: SelectionRange) => {
+  const pos = props.getPos?.();
+  if (pos === undefined) {
+    return;
+  }
+
+  const { state } = props.editor.view;
+  const from = pos + 1 + selection.from;
+  const to = pos + 1 + selection.to;
+  if (
+    !(state.selection instanceof TextSelection) ||
+    state.selection.from !== from ||
+    state.selection.to !== to
+  ) {
+    props.editor.view.dispatch(
+      state.tr.setSelection(TextSelection.create(state.doc, from, to))
+    );
+  }
+
+  showBubbleMenu();
+};
+
+const isCurrentNodeSelected = () => {
+  const pos = props.getPos?.();
+  return (
+    pos !== undefined &&
+    isHybridBlockNodeSelection(
+      props.editor.view.state,
+      props.node.type.name,
+      pos
+    )
+  );
+};
+
+const focusCodeMirror = () => {
+  if (!cm) {
+    return;
+  }
+
+  cm.focus();
+  showBubbleMenu();
+};
+
+const selectWholeEditor = (codeMirrorView: EditorView) => {
+  const { main } = codeMirrorView.state.selection;
+  if (main.from !== 0 || main.to !== codeMirrorView.state.doc.length) {
+    return false;
+  }
+
+  const { state, dispatch } = props.editor.view;
+  const selection = NodeRangeSelection.create(
+    state.doc,
+    0,
+    state.doc.content.size
+  );
+  dispatch(state.tr.setSelection(selection).scrollIntoView());
+  props.editor.view.focus();
+  return true;
+};
+
 const codeMirrorKeymap = (): KeyBinding[] => {
   const view = props.editor.view;
   return [
+    { key: "Mod-a", run: selectWholeEditor },
     { key: "ArrowUp", run: () => maybeEscape("line", -1) },
     { key: "ArrowLeft", run: () => maybeEscape("char", -1) },
     { key: "ArrowDown", run: () => maybeEscape("line", 1) },
     { key: "ArrowRight", run: () => maybeEscape("char", 1) },
     {
       key: "Ctrl-Enter",
+      mac: "Cmd-Enter",
       run: () => {
+        if (!props.editor.commands.exitCode()) {
+          return false;
+        }
         view.focus();
         return true;
       },
@@ -316,7 +406,7 @@ const selectNode = async () => {
     await createCodeMirror(props.node.textContent);
   }
   if (cm) {
-    cm.focus();
+    focusCodeMirror();
   }
 };
 
@@ -377,15 +467,6 @@ watch(
   { deep: true }
 );
 
-watch(
-  () => props.selected,
-  (selected) => {
-    if (selected) {
-      void selectNode();
-    }
-  }
-);
-
 onMounted(() => {
   void setupSplitView();
 });
@@ -397,7 +478,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <node-view-wrapper
-    class=":uno: mt-3 outline outline-1 outline-[#ccc] rounded overflow-hidden hover:outline-[#55c6a0] transition-all"
+    class="hybrid-edit-block :uno: mt-3 outline outline-1 outline-[#ccc] rounded overflow-hidden transition-all"
     contenteditable="false"
   >
     <div
@@ -463,6 +544,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.hybrid-edit-block:not(.ProseMirror-selectednode):not(
+    .ProseMirror-selectednoderange
+  ):not(.range-fake-selection):hover {
+  outline-color: #55c6a0;
+}
+
 :deep(.cm-editor) {
   min-height: 10em;
   height: 100%;
