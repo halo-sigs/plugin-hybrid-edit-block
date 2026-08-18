@@ -1,0 +1,24 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: plugin-hybrid-edit-block-settings
+spec:
+  forms:
+    - group: base
+      label: 基本设置
+      formSchema:
+        - $formkit: radio
+          label: 默认模式
+          name: defaultMode
+          id: defaultMode
+          key: defaultMode
+          help: 选择默认模式
+          validation: required
+          value: 'all'
+          options:
+            - label: 分屏模式
+              value: 'all'
+            - label: 编辑模式
+              value: 'edit'
+            - label: 预览模式
+              value: 'preview'

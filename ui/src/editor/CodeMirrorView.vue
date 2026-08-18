@@ -22,6 +22,7 @@ import {
 } from "@halo-dev/richtext-editor";
 import MingcuteRightSmallFill from "~icons/mingcute/right-small-fill";
 import type { Line, SelectionRange } from "@codemirror/state";
+import { fetchSettings } from "../utils/settings";
 import { loadLanguageExtensions } from "./language-extensions";
 import {
   isHybridBlockActive,
@@ -60,8 +61,17 @@ let cm: EditorView | undefined;
 let updating = false;
 let previewRenderer: PreviewRenderer | undefined;
 let codeMirrorCreationToken = 0;
+let defaultModeLoadToken = 0;
+
+type IsCurrentDefaultMode = () => boolean;
+
+const invalidateDefaultModeLoad = () => {
+  defaultModeLoadToken++;
+};
 
 const togglePreviewMode = () => {
+  invalidateDefaultModeLoad();
+
   if (isSplitMode.value) {
     toggleSplitMode();
   }
@@ -82,6 +92,8 @@ const togglePreviewMode = () => {
 };
 
 const toggleSplitMode = () => {
+  invalidateDefaultModeLoad();
+
   if (isSplitMode.value) {
     isSplitMode.value = false;
     isPreviewMode.value = true;
@@ -107,7 +119,9 @@ const handleDoubleClick = () => {
   }
 };
 
-const setupSplitView = async () => {
+const setupSplitView = async (
+  isCurrent: IsCurrentDefaultMode = () => isSplitMode.value
+) => {
   if (!editorContainerRef.value || !previewContainerRef.value) {
     return;
   }
@@ -118,6 +132,10 @@ const setupSplitView = async () => {
 
   await createCodeMirror(currentText);
 
+  if (!isCurrent() || !cm || !previewContainerRef.value) {
+    return;
+  }
+
   previewRenderer = new PreviewRenderer(
     blockType.value,
     previewContainerRef.value
@@ -127,6 +145,40 @@ const setupSplitView = async () => {
   if (cm && isCurrentNodeSelected()) {
     focusCodeMirror();
   }
+};
+
+const applyDefaultMode = async (
+  defaultMode: "all" | "edit" | "preview",
+  isCurrent: IsCurrentDefaultMode
+) => {
+  if (!isCurrent()) {
+    return;
+  }
+
+  destroyCodeMirror();
+  previewRenderer = undefined;
+  isSplitMode.value = defaultMode === "all";
+  isPreviewMode.value = defaultMode === "preview";
+
+  await nextTick();
+  if (!isCurrent()) {
+    return;
+  }
+
+  if (defaultMode === "all") {
+    await setupSplitView(isCurrent);
+    return;
+  }
+
+  if (defaultMode === "edit") {
+    await createCodeMirror(props.node.textContent);
+    if (isCurrent() && cm && isCurrentNodeSelected()) {
+      focusCodeMirror();
+    }
+    return;
+  }
+
+  updateStandalonePreview();
 };
 
 const updateSplitPreview = () => {
@@ -468,10 +520,16 @@ watch(
 );
 
 onMounted(() => {
-  void setupSplitView();
+  const loadToken = ++defaultModeLoadToken;
+  const isCurrent = () => loadToken === defaultModeLoadToken;
+
+  void fetchSettings().then(({ defaultMode }) => {
+    return applyDefaultMode(defaultMode, isCurrent);
+  });
 });
 
 onBeforeUnmount(() => {
+  invalidateDefaultModeLoad();
   destroyCodeMirror();
   previewRenderer = undefined;
 });

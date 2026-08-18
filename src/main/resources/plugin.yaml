@@ -11,6 +11,8 @@ spec:
     name: Halo
     website: https://github.com/halo-dev
   logo: logo.svg
+  settingName: plugin-hybrid-edit-block-settings
+  configMapName: plugin-hybrid-edit-block-configmap
   homepage: https://www.halo.run/store/apps/app-NgHnY
   issues: https://github.com/halo-sigs/plugin-hybrid-edit-block/issues
   repo: https://github.com/halo-sigs/plugin-hybrid-edit-block
